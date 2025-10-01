@@ -18,8 +18,8 @@ export const adminMenu: MenuItem[] = [
     name: "Usuarios",
     icon: <PeopleOutline />,
     children: [
-      { name: "Clientes", href: "admin/users/clients" },
-      { name: "Miembros", href: "admin/users/members" },
+      { name: "Clientes", href: "/admin/users/clients" },
+      { name: "Miembros", href: "/admin/users/members" },
     ],
   },
   {
@@ -38,5 +38,5 @@ export const adminMenu: MenuItem[] = [
       { name: "Firmas", href: "/contracts/signatures" },
     ],
   },
-  { name: "Ajustes", href: "/settings", icon: <SettingsOutlined /> },
+  { name: "Ajustes", href: "/admin/settings", icon: <SettingsOutlined /> },
 ];

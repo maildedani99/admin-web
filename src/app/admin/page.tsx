@@ -1,8 +1,6 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { requireRole } from "@/lib/auth";
 
-export default function Dashboard() {
-  const token = cookies().get("rb.token")?.value;
-  if (!token) redirect("/login");
-  return <main style={{ padding: 24 }}>Dashboard Admin</main>;
+export default async function AdminPage() {
+  const session = await requireRole("admin");
+  return <main>Dashboard — {session.email}</main>;
 }

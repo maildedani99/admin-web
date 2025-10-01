@@ -1,39 +1,77 @@
-// Prioridad: cookie → sessionStorage → localStorage
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
+"use server";
 
-  const m = document.cookie.match(/(?:^|;\s*)rb\.token=([^;]+)/);
-  if (m) return decodeURIComponent(m[1]);
+import "server-only";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-  const s = sessionStorage.getItem("token");
-  if (s) return s;
+export type Role = "admin" | "teacher" | "client";
 
-  const l = localStorage.getItem("token");
-  return l || null;
+export type Session = {
+  sub: string;
+  email: string;
+  role: Role;
+  exp: number; // epoch seconds
+  name?: string;
+};
+
+/** Obtiene sesión básica desde cookies */
+export async function getSession(): Promise<Session | null> {
+  const store = await cookies();
+
+  const token = store.get("rb.token")?.value;
+  if (!token) return null;
+
+  const exp = Number(store.get("rb.exp")?.value ?? 0);
+  const now = Math.floor(Date.now() / 1000);
+  if (exp && exp <= now) return null;
+
+  return {
+    sub: store.get("rb.sub")?.value ?? "",
+    email: store.get("rb.email")?.value ?? "",
+    role: (store.get("rb.role")?.value as Role) ?? "client",
+    name: store.get("rb.name")?.value ?? "",
+    exp: exp || now + 300,
+  };
 }
 
-export function asBearerHeader(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const t = String(raw).replace(/^["']|["']$/g, "").trim();
-  return /^bearer\s+/i.test(t) ? t : `Bearer ${t}`;
-}
-
-// Opcional: para login/logout
-export function setToken(token: string, remember = false) {
-  if (remember) {
-    sessionStorage.removeItem("token");
-    localStorage.setItem("token", token);
-  } else {
-    localStorage.removeItem("token");
-    sessionStorage.setItem("token", token);
+/** Obliga a estar autenticado */
+export async function requireAuth(): Promise<Session> {
+  const session = await getSession();
+  if (!session) {
+    const target = await currentPath();
+    redirect(`/login?redirect=${encodeURIComponent(target)}`);
   }
-  document.cookie = `rb.token=${encodeURIComponent(token)}; Path=/; SameSite=Lax${
-    remember ? "; Max-Age=2592000" : ""
-  }${typeof window !== "undefined" && location.protocol === "https:" ? "; Secure" : ""}`;
+  return session;
 }
 
-export function clearToken() {
-  localStorage.removeItem("token");
-  sessionStorage.removeItem("token");
-  document.cookie = "rb.token=; Path=/; Max-Age=0";
+/** Obliga a tener uno de los roles permitidos */
+export async function requireRole(roles: Role | Role[]): Promise<Session> {
+  const session = await requireAuth();
+  const allowed = Array.isArray(roles) ? roles : [roles];
+  if (!allowed.includes(session.role)) {
+    redirect("/403");
+  }
+  return session;
+}
+
+/** Server Action: cerrar sesión */
+export async function logout() {
+  const store = await cookies();
+  ["rb.token", "rb.exp", "rb.role", "rb.email", "rb.name", "rb.sub"].forEach((c) =>
+    store.set(c, "", { path: "/", maxAge: 0 })
+  );
+  redirect("/login");
+}
+
+/** Devuelve el path actual para redirigir tras login */
+async function currentPath(): Promise<string> {
+  const h = await headers();
+  const referer = h.get("referer");
+  if (referer) {
+    try {
+      const url = new URL(referer);
+      return url.pathname + url.search;
+    } catch {}
+  }
+  return "/";
 }

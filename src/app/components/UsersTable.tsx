@@ -8,7 +8,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import Link from 'next/link';
 import useUsers from '@/hooks/useUsers';
-import { getToken } from '@/lib/auth';
+import { getClientToken } from '@/lib/auth-client';
 
 export default function UsersTable({
   type, title,
@@ -17,7 +17,7 @@ export default function UsersTable({
   const apiType = type === 'clients' ? 'clients' : 'members';
 
   // token desde storage/cookie
-  const token = getToken();
+  const token = getClientToken();
 
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');

@@ -1,8 +1,12 @@
 "use client";
 
 import { AppBar, Toolbar, Typography } from "@mui/material";
+import UserMenu from "./UserMenu";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+
+  const router = useRouter()
   return (
     <AppBar
       position="fixed"
@@ -14,7 +18,12 @@ export default function Navbar() {
           Admin
         </Typography>
         <div style={{ flex: 1 }} />
-        {/* aquí podrás poner perfil / logout */}
+        <UserMenu
+          name="Dani Andrés"
+          email="dani@test.com"
+          avatarUrl="/avatar.png"
+          onConfig={() => router.push("/settings")}
+        />
       </Toolbar>
     </AppBar>
   );

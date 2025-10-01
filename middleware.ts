@@ -1,25 +1,17 @@
-import type { NextRequest } from "next/server";
+// middleware.ts
 import { NextResponse } from "next/server";
-
-export const config = { matcher: "/:path*" };
+import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  if (!pathname.startsWith("/admin")) return NextResponse.next();
 
-  // deja pasar /login y assets
-  if (
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico"
-  ) return NextResponse.next();
-
-  // protege todo lo demás
   const token = req.cookies.get("rb.token")?.value;
-  if (!token) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
-  }
+  if (!token) return NextResponse.redirect(new URL("/login", req.url));
+
+  const role = (req.cookies.get("rb.role")?.value || "").toLowerCase();
+  if (role !== "admin") return NextResponse.redirect(new URL("/403", req.url));
+
   return NextResponse.next();
 }
+export const config = { matcher: ["/admin/:path*"] };
