@@ -26,7 +26,7 @@ export const adminMenu: MenuItem[] = [
     name: "Cursos",
     icon: <SchoolOutlined />,
     children: [
-      { name: "Listado", href: "/courses" },
+      { name: "Listado", href: "/admin/courses" },
       { name: "Inscripciones", href: "/enrollments" },
     ],
   },
