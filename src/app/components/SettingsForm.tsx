@@ -87,83 +87,109 @@ export default function SettingsForm() {
   };
 
   return (
-    <Box sx={{ py: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
-        Configuración (Admin)
-      </Typography>
+  <Box sx={{ py: 2 }}>
+    <Typography variant="h5" sx={{ mb: 2, fontWeight: 700, color: '#111' }}>
+      Configuración (Admin)
+    </Typography>
 
-      {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
-      {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
+    {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
+    {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
 
-      <Box component="form" onSubmit={onSubmit}>
-        <Stack spacing={3}>
-          {/* Precios */}
-          <Box>
-            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700 }}>
-              Precios
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Precio curso"
-                  type="number"
-                  inputProps={{ step: "0.01", min: 0 }}
-                  fullWidth
-                  value={form.price_course ?? ""}
-                  onChange={onChange("price_course")}
-                  disabled={loading}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Precio sesión"
-                  type="number"
-                  inputProps={{ step: "0.01", min: 0 }}
-                  fullWidth
-                  value={form.price_session ?? ""}
-                  onChange={onChange("price_session")}
-                  disabled={loading}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  label="Precio reserva"
-                  type="number"
-                  inputProps={{ step: "0.01", min: 0 }}
-                  fullWidth
-                  value={form.price_booking ?? ""}
-                  onChange={onChange("price_booking")}
-                  disabled={loading}
-                />
-              </Grid>
+    <Box
+      component="form"
+      onSubmit={onSubmit}
+      sx={{
+        // surface clara como el resto
+        bgcolor: 'common.white',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 3,
+        p: { xs: 2, sm: 3 },
+
+        // contraste como en tablas
+        '& .MuiFormLabel-root': { color: '#111 !important' },
+        '& .MuiInputBase-input': { color: '#111 !important' },
+        '& .MuiSelect-select': { color: '#111 !important' },
+        '& .MuiFormHelperText-root': { color: 'text.secondary !important' },
+
+        '& .MuiOutlinedInput-notchedOutline': { borderColor: 'grey.300' },
+        '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'grey.400' },
+        '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main', borderWidth: 2 },
+      }}
+    >
+      <Stack spacing={3}>
+        {/* Precios */}
+        <Box>
+          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700, color: '#111' }}>
+            Precios
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                size="small"
+                label="Precio curso"
+                type="number"
+                inputProps={{ step: '0.01', min: 0 }}
+                fullWidth
+                value={form.price_course ?? ''}
+                onChange={onChange('price_course')}
+                disabled={loading}
+              />
             </Grid>
-          </Box>
+            <Grid item xs={12} md={4}>
+              <TextField
+                size="small"
+                label="Precio sesión"
+                type="number"
+                inputProps={{ step: '0.01', min: 0 }}
+                fullWidth
+                value={form.price_session ?? ''}
+                onChange={onChange('price_session')}
+                disabled={loading}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                size="small"
+                label="Precio reserva"
+                type="number"
+                inputProps={{ step: '0.01', min: 0 }}
+                fullWidth
+                value={form.price_booking ?? ''}
+                onChange={onChange('price_booking')}
+                disabled={loading}
+              />
+            </Grid>
+          </Grid>
+        </Box>
 
-          {/* Stripe default region */}
-          <Box>
-            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700 }}>
-              Pasarela de pago por defecto
-            </Typography>
-            <TextField
-              select
-              label="Stripe predeterminado"
-              fullWidth
-              value={form.stripe_default_region}
-              onChange={onChange("stripe_default_region")}
-              disabled={loading}
-            >
-              <MenuItem value="es">España (Stripe ES)</MenuItem>
-              <MenuItem value="us">USA (Stripe US)</MenuItem>
-            </TextField>
-          </Box>
+        {/* Stripe default region */}
+        <Box>
+          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 700, color: '#111' }}>
+            Pasarela de pago por defecto
+          </Typography>
+          <TextField
+            size="small"
+            select
+            label="Stripe predeterminado"
+            fullWidth
+            value={form.stripe_default_region}
+            onChange={onChange('stripe_default_region')}
+            disabled={loading}
+          >
+            <MenuItem value="es">España (Stripe ES)</MenuItem>
+            <MenuItem value="us">USA (Stripe US)</MenuItem>
+          </TextField>
+        </Box>
 
-          <Stack direction="row" justifyContent="flex-end">
-            <Button type="submit" variant="contained" disabled={saving || loading}>
-              {saving ? "Guardando..." : "Guardar cambios"}
-            </Button>
-          </Stack>
+        <Stack direction="row" justifyContent="flex-end">
+          <Button type="submit" variant="contained" disabled={saving || loading}>
+            {saving ? 'Guardando...' : 'Guardar cambios'}
+          </Button>
         </Stack>
-      </Box>
+      </Stack>
     </Box>
-  );
+  </Box>
+);
+
 }

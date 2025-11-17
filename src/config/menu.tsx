@@ -4,6 +4,7 @@ import PeopleOutline from "@mui/icons-material/PeopleOutline";
 import AssignmentOutlined from "@mui/icons-material/AssignmentOutlined";
 import SchoolOutlined from "@mui/icons-material/SchoolOutlined";
 import SettingsOutlined from "@mui/icons-material/SettingsOutlined";
+import TimelineOutlined from "@mui/icons-material/TimelineOutlined"; // 👈 nuevo
 
 export type MenuItem = {
   name: string;
@@ -38,5 +39,8 @@ export const adminMenu: MenuItem[] = [
       { name: "Firmas", href: "/contracts/signatures" },
     ],
   },
+  // 👇 nuevo enlace
+  { name: "Actividad", href: "/admin/activity", icon: <TimelineOutlined /> },
+
   { name: "Ajustes", href: "/admin/settings", icon: <SettingsOutlined /> },
 ];

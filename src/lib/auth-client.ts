@@ -1,19 +1,23 @@
-// lib/auth-client.ts
-"use client";
-
-/** Lee el token desde document.cookie o storage en cliente */
+// src/lib/auth-client.ts
 export function getClientToken(): string | null {
-  // 1) cookie
-  const match = document.cookie.match(/(?:^|;\s*)rb\.token=([^;]+)/);
-  if (match) return decodeURIComponent(match[1]);
+  // Evita acceso en SSR
+  const hasDOM = typeof window !== 'undefined' && typeof document !== 'undefined';
+  if (!hasDOM) return null;
 
-  // 2) storage (por si también lo guardaste ahí)
-  return localStorage.getItem("token") || sessionStorage.getItem("token");
-}
+  try {
+    // 1) cookie
+    const m = document.cookie?.match(/(?:^|;\s*)rb\.token=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
 
-/** Lee el rol del user en cliente */
-export function getClientRole(): string | null {
-  const match = document.cookie.match(/(?:^|;\s*)rb\.role=([^;]+)/);
-  if (match) return decodeURIComponent(match[1]);
+    // 2) storages
+    const raw =
+      window.sessionStorage?.getItem('token') ||
+      window.localStorage?.getItem('token') ||
+      null;
+
+    if (raw) return String(raw).replace(/^["']|["']$/g, '').trim() || null;
+  } catch {
+    // no-op
+  }
   return null;
 }

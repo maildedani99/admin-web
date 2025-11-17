@@ -27,11 +27,11 @@ export default function Modal({ children, width = 'min(900px, 92vw)', maxWidth =
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          bgcolor: '#111',            // panel oscuro para tu tema
+          bgcolor: '#fff',            
           color: '#fff',
           boxShadow: 24,
           borderRadius: 2,
-          p: 3,
+          p: 6,
           width,
           maxWidth,
           maxHeight: '85vh',
@@ -41,8 +41,8 @@ export default function Modal({ children, width = 'min(900px, 92vw)', maxWidth =
         <IconButton
           aria-label="Cerrar"
           onClick={() => router.back()}
-          size="small"
-          sx={{ position: 'absolute', top: 8, right: 8, color: '#bbb' }}
+          size="large"
+          sx={{ position: 'absolute', top: 6, right: 6, color: '#242424' }}
         >
           <CloseIcon fontSize="small" />
         </IconButton>

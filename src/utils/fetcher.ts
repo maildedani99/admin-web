@@ -11,7 +11,7 @@ type AuthArg =
 function asBearerHeader(raw: string | undefined | null): string | null {
   if (!raw) return null;
   const t = String(raw).replace(/^["']|["']$/g, "").trim();
-  if (/^bearer\s+/i.test(t)) return t;          // ya viene con Bearer
+  if (/^bearer\s+/i.test(t)) return t; // ya viene con Bearer
   return `Bearer ${t}`;
 }
 
@@ -36,6 +36,31 @@ function buildUrl(pathOrUrl: string, method: string, body: any) {
   return `${base}${path}`;
 }
 
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return (
+    sessionStorage.getItem("token") ||
+    localStorage.getItem("token") ||
+    null
+  );
+}
+
+function setStoredToken(token: string) {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.setItem("token", token);
+    localStorage.setItem("token", token);
+  } catch {}
+}
+
+function clearStoredToken() {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
+  } catch {}
+}
+
 export async function fetchApiData(
   urlOrKey: any,
   method: string = "GET",
@@ -47,66 +72,133 @@ export async function fetchApiData(
     [urlOrKey, method, body, auth] = urlOrKey;
   }
 
-if (!auth && typeof window !== "undefined") {
-  const stored =
-    sessionStorage.getItem("token") ||
-    localStorage.getItem("token") ||
-    null;
-  if (stored) auth = stored;
-}  // auth puede ser string (token) o { token, user }
-  const token =
-    typeof auth === "string" ? auth :
-    (auth && "token" in (auth as any) ? (auth as any).token : null);
+  // auth puede ser string (token) o { token, user }
+  if (!auth && typeof window !== "undefined") {
+    const stored = getStoredToken();
+    if (stored) auth = stored;
+  }
 
-  const tenantId =
-    auth && typeof auth === "object" && (auth as any).user?.tenant_id
-      ? String((auth as any).user.tenant_id)
-      : "";
+  const getTokenFromAuth = (a: AuthArg) =>
+    typeof a === "string"
+      ? a
+      : a && "token" in (a as any)
+      ? (a as any).token
+      : null;
 
-  const url = buildUrl(String(urlOrKey), method, body);
+  const doRequest = async (authArg: AuthArg): Promise<any> => {
+    const token = getTokenFromAuth(authArg);
 
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-    "Cache-Control": "no-store",
+    const tenantId =
+      authArg && typeof authArg === "object" && (authArg as any).user?.tenant_id
+        ? String((authArg as any).user.tenant_id)
+        : "";
+
+    const url = buildUrl(String(urlOrKey), method, body);
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "Cache-Control": "no-store",
+    };
+
+    let payload: BodyInit | undefined = undefined;
+
+    if (method.toUpperCase() !== "GET") {
+      if (body instanceof FormData) {
+        payload = body; // no pongas Content-Type, el navegador añade el boundary
+      } else if (body != null) {
+        headers["Content-Type"] = "application/json";
+        payload = JSON.stringify(body);
+      }
+    }
+
+    const authHeader = asBearerHeader(token);
+    if (authHeader) headers.Authorization = authHeader;
+    if (tenantId) headers["X-Tenant-ID"] = tenantId;
+
+    const res = await fetch(url, {
+      method,
+      headers,
+      body: payload,
+      mode: "cors",
+      redirect: "follow",
+      cache: "no-store",
+      keepalive: false,
+    });
+
+    // 204 No Content
+    if (res.status === 204) return null;
+
+    let json: any = null;
+    try {
+      json = await res.json();
+    } catch {
+      // puede no haber cuerpo JSON
+    }
+
+    // Tu API: { success, message, data, errors, meta }
+    if (!res.ok || (json && json.success === false)) {
+      const msg = json?.message || res.statusText || `HTTP ${res.status}`;
+      const err: any = new Error(msg);
+      err.status = res.status;
+      err.errors = json?.errors;
+      err.raw = json;
+      throw err;
+    }
+
+    return json?.data ?? json; // devuelve data si existe; si no, el json tal cual
   };
 
-  let payload: BodyInit | undefined = undefined;
+  // Intenta refresh si 401 y reintenta UNA vez
+  const tryRefresh = async (oldAuth: AuthArg): Promise<AuthArg | null> => {
+    try {
+      const token = getTokenFromAuth(oldAuth) || getStoredToken();
+      const refreshUrl = buildUrl("auth/refresh", "POST", null);
+      const resp = await fetch(refreshUrl, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: asBearerHeader(token) || "",
+        },
+        mode: "cors",
+        cache: "no-store",
+      });
+      const j = await resp.json().catch(() => null);
+      if (!resp.ok || !j?.token) throw new Error(j?.message || "No refresh");
 
-  if (method.toUpperCase() !== "GET") {
-    if (body instanceof FormData) {
-      payload = body; // no pongas Content-Type, el navegador añade el boundary
-    } else if (body != null) {
-      headers["Content-Type"] = "application/json";
-      payload = JSON.stringify(body);
+      // guarda token nuevo
+      setStoredToken(j.token);
+
+      // devuelve nuevo auth con el token actualizado
+      if (typeof oldAuth === "string" || oldAuth === null) {
+        return j.token as string;
+      }
+      return { ...(oldAuth as any), token: j.token };
+    } catch {
+      return null;
     }
+  };
+
+  try {
+    return await doRequest(auth);
+  } catch (e: any) {
+    if (e?.status === 401) {
+      // Intentamos refrescar y reintentar
+      const refreshedAuth = await tryRefresh(auth);
+      if (refreshedAuth) {
+        try {
+          return await doRequest(refreshedAuth);
+        } catch (e2: any) {
+          if (e2?.status === 401) {
+            clearStoredToken();
+          }
+          throw e2;
+        }
+      }
+      // No se pudo refrescar
+      clearStoredToken();
+    }
+    throw e;
   }
-
-  const authHeader = asBearerHeader(token);
-  if (authHeader) headers.Authorization = authHeader;
-  if (tenantId) headers["X-Tenant-ID"] = tenantId;
-
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: payload,
-    mode: "cors",
-    redirect: "follow",
-    cache: "no-store",
-  });
-
-  let json: any = null;
-  try { json = await res.json(); } catch { /* sin cuerpo */ }
-
-  // Tu API: { success, message, data, errors, meta }
-  if (!res.ok || (json && json.success === false)) {
-    const msg = json?.message || res.statusText || `HTTP ${res.status}`;
-    const err: any = new Error(msg);
-    err.status = res.status;
-    err.errors = json?.errors;
-    throw err;
-  }
-
-  return json?.data ?? json; // devuelve data si existe; si no, el json tal cual
 }
 
 export const fetcher = fetchApiData;

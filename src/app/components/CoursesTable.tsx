@@ -179,166 +179,228 @@ export default function CoursesTable() {
     }
   };
 
-  return (
-    <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h5" fontWeight={700}>Cursos</Typography>
-        <Stack direction="row" spacing={1}>
-          <TextField
-            size="small"
-            placeholder="Buscar por nombre/descr…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpen(true)}>
-            Nuevo curso
-          </Button>
-        </Stack>
+ return (
+  <Box>
+    {/* Header */}
+    <Stack
+      direction="row"
+      justifyContent="space-between"
+      alignItems="center"
+      sx={{ mb: 2 }}
+    >
+      <Typography variant="h5" fontWeight={700} sx={{ color: '#111' }}>
+        Cursos
+      </Typography>
+
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <TextField
+          size="small"
+          placeholder="Buscar por nombre/descr…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          sx={{
+            width: { xs: 180, sm: 280 },
+            '& .MuiOutlinedInput-root': {
+              bgcolor: 'common.white',
+              borderRadius: 2,
+              '& fieldset': { borderColor: 'grey.300' },
+              '&:hover fieldset': { borderColor: 'grey.400' },
+              '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 },
+            },
+          }}
+        />
+        <Button startIcon={<AddIcon />} variant="contained" onClick={() => setOpen(true)}>
+          Nuevo curso
+        </Button>
       </Stack>
+    </Stack>
 
-      {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
-      {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
+    {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
+    {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
 
-      <Paper variant="outlined">
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
+    {/* Tabla */}
+    <Paper
+      variant="outlined"
+      sx={{
+        borderRadius: 3,
+        bgcolor: 'common.white',
+        borderColor: 'divider',
+        overflow: 'hidden',
+
+        // contraste como Users
+        '& .MuiTableCell-root': { color: '#111' },
+      }}
+    >
+      <TableContainer sx={{ borderTopLeftRadius: 3, borderTopRightRadius: 3 }}>
+        <Table size="small" stickyHeader>
+          <TableHead>
+            <TableRow
+              sx={{
+                '& th': {
+                  bgcolor: 'grey.200',
+                  color: '#111',
+                  fontWeight: 700,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  whiteSpace: 'nowrap',
+                },
+              }}
+            >
+              <TableCell width={80}>ID</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Descripción</TableCell>
+              <TableCell width={120} align="right">Precio</TableCell>
+              <TableCell width={180}>Actualizado</TableCell>
+              <TableCell width={100} align="center">Acciones</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {!loading && items.length === 0 && (
               <TableRow>
-                <TableCell width={80}>ID</TableCell>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Descripción</TableCell>
-                <TableCell width={120} align="right">Precio</TableCell>
-                <TableCell width={180}>Actualizado</TableCell>
-                <TableCell width={100} align="center">Acciones</TableCell>
+                <TableCell colSpan={6} align="center" sx={{ py: 6, color: 'text.secondary' }}>
+                  Sin cursos.
+                </TableCell>
               </TableRow>
-            </TableHead>
-            <TableBody>
-              {!loading && items.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 6, color: "text.secondary" }}>
-                    Sin cursos.
-                  </TableCell>
-                </TableRow>
-              )}
-              {items.map((c) => (
-                <TableRow
-                  key={c.id}
-                  hover
-                  onClick={() => goToCourse(c.id)}
-                  onKeyDown={(e) => { if (e.key === "Enter") goToCourse(c.id); }}
-                  role="link"
-                  tabIndex={0}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <TableCell>{c.id}</TableCell>
-                  <TableCell>{c.name}</TableCell>
-                  <TableCell sx={{ maxWidth: 360 }}>
-                    <Typography variant="body2" noWrap title={c.description || ""}>
-                      {c.description || "—"}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    {typeof c.price === "number" ? c.price.toFixed(2) : c.price}
-                  </TableCell>
-                  <TableCell>
-                    {c.updated_at ? new Date(c.updated_at).toLocaleString() : "—"}
-                  </TableCell>
-                  <TableCell align="center" onClick={(e) => e.stopPropagation()}>
-                    <Tooltip title="Eliminar">
-                      <span>
-                        <IconButton
-                          color="error"
-                          aria-label="Eliminar curso"
-                          onClick={(e) => { e.stopPropagation(); onDelete(c); }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {loading && (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                    Cargando…
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            )}
 
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ p: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {total} resultados
-          </Typography>
-          <Pagination
-            page={page}
-            count={totalPages}
-            onChange={(_e, p) => setPage(p)}
-            size="small"
-          />
-        </Stack>
-      </Paper>
+            {items.map((c) => (
+              <TableRow
+                key={c.id}
+                hover
+                onClick={() => goToCourse(c.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter') goToCourse(c.id); }}
+                role="link"
+                tabIndex={0}
+                sx={{
+                  cursor: 'pointer',
+                  '&:nth-of-type(odd)': { bgcolor: 'grey.50' },
+                  '&:hover': { bgcolor: 'grey.100' },
+                  '& td, & td *': { color: 'rgba(17,17,17,0.95) !important' },
+                  '& td': { borderBottomColor: 'divider' },
+                }}
+              >
+                <TableCell>{c.id}</TableCell>
+                <TableCell>{c.name}</TableCell>
+                <TableCell sx={{ maxWidth: 360 }}>
+                  <Typography variant="body2" noWrap title={c.description || ''}>
+                    {c.description || '—'}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  {typeof c.price === 'number' ? c.price.toFixed(2) : c.price}
+                </TableCell>
+                <TableCell>
+                  {c.updated_at ? new Date(c.updated_at).toLocaleString() : '—'}
+                </TableCell>
+                <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                  <Tooltip title="Eliminar">
+                    <span>
+                      <IconButton
+                        color="error"
+                        aria-label="Eliminar curso"
+                        onClick={(e) => { e.stopPropagation(); onDelete(c); }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
 
-      {/* Modal crear */}
-      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>Nuevo curso</DialogTitle>
-        <Box component="form" onSubmit={onCreate}>
-          <DialogContent dividers>
-            <Grid container spacing={2}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Nombre*"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  fullWidth
-                  required
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  label="Precio (opcional)"
-                  type="number"
-                  inputProps={{ step: "0.01", min: 0 }}
-                  value={form.price}
-                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                  fullWidth
-                  helperText="Si lo dejas vacío, se usará el precio por defecto de Config."
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Descripción"
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  fullWidth
-                  multiline
-                  minRows={3}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label="Contenido (JSON opcional)"
-                  value={form.content}
-                  onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                  fullWidth
-                  multiline
-                  minRows={6}
-                  placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
-                />
-              </Grid>
+            {loading && (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  Cargando…
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        sx={{
+          p: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'grey.50',
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          {total} resultados
+        </Typography>
+        <Pagination
+          page={page}
+          count={totalPages}
+          onChange={(_e, p) => setPage(p)}
+          size="small"
+        />
+      </Stack>
+    </Paper>
+
+    {/* Modal crear (sin cambios de lógica) */}
+    <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="md">
+      <DialogTitle>Nuevo curso</DialogTitle>
+      <Box component="form" onSubmit={onCreate}>
+        <DialogContent dividers>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Nombre*"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                fullWidth
+                required
+              />
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpen(false)} disabled={creating}>Cancelar</Button>
-            <Button type="submit" variant="contained" disabled={!canSubmit}>
-              {creating ? "Creando…" : "Crear"}
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-    </Box>
-  );
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Precio (opcional)"
+                type="number"
+                inputProps={{ step: '0.01', min: 0 }}
+                value={form.price}
+                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                fullWidth
+                helperText="Si lo dejas vacío, se usará el precio por defecto de Config."
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Descripción"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                fullWidth
+                multiline
+                minRows={3}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Contenido (JSON opcional)"
+                value={form.content}
+                onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                fullWidth
+                multiline
+                minRows={6}
+                placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} disabled={creating}>Cancelar</Button>
+          <Button type="submit" variant="contained" disabled={!canSubmit}>
+            {creating ? 'Creando…' : 'Crear'}
+          </Button>
+        </DialogActions>
+      </Box>
+    </Dialog>
+  </Box>
+);
+
 }

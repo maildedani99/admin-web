@@ -1,208 +1,322 @@
-// src/components/clientView.tsx
-"use client";
+// src/components/ClientView.tsx
+'use client';
 
-import { useState, useEffect, useCallback, ChangeEvent } from "react";
+import { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import {
-  Card, CardHeader, CardContent, CardActions,
-  Grid, TextField, Button, Stack, Divider, Switch, FormControlLabel,
-  Table, TableHead, TableRow, TableCell, TableBody, MenuItem, Alert
-} from "@mui/material";
-import { fetcher } from "@/utils/fetcher";
+  Box, Card, CardHeader, CardContent, CardActions,
+  Grid, TextField, Button, Stack, Divider, Switch, FormControlLabel, Alert,
+  MenuItem, Typography
+} from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
+import { fetcher } from '@/utils/fetcher';
+import { getClientToken } from '@/lib/auth-client';
+import ClientCoursesList from './ClientCoursesList';
+import ClientPaymentsList from './ClientPaymentsList';
 
-type Role = "admin" | "teacher" | "client";
-type Status = "active" | "pending" | "blocked";
-type PayStatus = "pending" | "paid" | "failed" | "refunded";
-
-type CourseDTO = { id: number; name: string; price_cents: number };
-type PaymentDTO = {
-  id: number;
-  course_id: number | null;
-  course: CourseDTO | null;
-  amount_cents: number;
-  currency: string;
-  status: PayStatus;
-  method?: string | null;
-  paid_at?: string | null;
-  reference?: string | null;
-  notes?: string | null;
-  createdAt?: string | null;
-};
+type Role = 'admin' | 'teacher' | 'client';
+type Status = 'active' | 'pending' | 'blocked';
 
 type UserDTO = {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
-  phone?: string | null;
-  address?: string | null;
-  city?: string | null;
-  postalCode?: string | null;
-  country?: string | null;
-  dni?: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  postalCode: string | null;
+  country: string | null;
+  dni: string | null;
   role: Role;
   isActive: boolean;
   status: Status;
-  tutor_id?: number | null;
-  createdAt?: string | null;
-  tutor?: { id: number; firstName: string; lastName: string; email: string } | null;
-  courses?: CourseDTO[];
-  payments?: PaymentDTO[];
 };
 
-const ROLE_OPTIONS: Role[] = ["admin", "teacher", "client"];
-const STATUS_OPTIONS: Status[] = ["active", "pending", "blocked"];
+const ROLE_OPTIONS: Role[] = ['admin', 'teacher', 'client'];
+const STATUS_OPTIONS: Status[] = ['active', 'pending', 'blocked'];
 
-function centsToEUR(cents?: number | null) {
-  const n = Number(cents ?? 0);
-  return (n / 100).toFixed(2);
+type Props = { id: number | string };
+
+function normalizeFromApi(u: any): UserDTO {
+  return {
+    id: Number(u?.id),
+    firstName: u?.firstName ?? '',
+    lastName:  u?.lastName  ?? '',
+    email:     u?.email     ?? '',
+    phone:     u?.phone     ?? null,
+    address:   u?.address   ?? null,
+    city:      u?.city      ?? null,
+    postalCode:u?.postalCode?? null,
+    country:   u?.country   ?? null,
+    dni:       u?.dni       ?? null,
+    role:      (u?.role as Role) ?? 'client',
+    isActive:  !!u?.isActive,
+    status:    (u?.status as Status) ?? 'pending',
+  };
 }
 
-type Props = {
-  id: number | string;
-  onSaved?: (u: UserDTO) => void;
-  onError?: (msg: string) => void;
+const toNull = (v: any) => {
+  if (v === undefined || v === null) return null;
+  const s = String(v).trim();
+  return s.length ? s : null;
 };
 
-export default function ClientView({ id, onSaved, onError }: Props) {
+export default function ClientView({ id }: Props) {
+  const token = getClientToken();
   const [data, setData] = useState<UserDTO | null>(null);
-  const [edit, setEdit] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [edit, setEdit] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!token) {
+      setErr('No autenticado.');
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    setError(null);
+    setErr(null);
+    setOk(null);
     try {
-      const res = await fetcher([`users/${id}`, "GET"]);
-      setData(res as UserDTO);
+      const res = await fetcher([`users/${id}`, 'GET', null, token]);
+      setData(normalizeFromApi(res));
     } catch (e: any) {
-      const msg = e?.message ?? "No se pudo cargar el usuario";
-      setError(msg);
-      onError?.(msg);
+      setErr(e?.message || 'No se pudo cargar el usuario');
     } finally {
       setLoading(false);
     }
-  }, [id, onError]);
+  }, [id, token]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   const setField =
     <K extends keyof UserDTO>(key: K) =>
-    (ev: ChangeEvent<HTMLInputElement>) =>
-      setData((d) => (d ? { ...d, [key]: ev.target.value } : d));
+    (ev: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setData((d) => (d ? { ...d, [key]: ev.target.value } as UserDTO : d));
 
   const setBool =
     (key: keyof UserDTO) =>
-    (ev: ChangeEvent<HTMLInputElement>) =>
-      setData((d) => (d ? { ...d, [key]: ev.target.checked } : d));
+    (_ev: ChangeEvent<HTMLInputElement>, checked: boolean) =>
+      setData((d) => (d ? { ...d, [key]: checked } as UserDTO : d));
 
-  const handleCancel = () => {
-    setEdit(false);
-    void load();
-  };
+  const handleCancel = () => { setEdit(false); void load(); };
 
   const handleSave = async () => {
-    if (!data) return;
+    if (!data || !token) return;
     setSaving(true);
-    setError(null);
+    setErr(null);
+    setOk(null);
     try {
-      const payload = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone ?? "",
-        address: data.address ?? "",
-        city: data.city ?? "",
-        postalCode: data.postalCode ?? "",
-        country: data.country ?? "",
-        dni: data.dni ?? "",
-        role: data.role,
-        isActive: !!data.isActive,
-        status: data.status,
-        tutor_id: data.tutor_id ?? null,
+      // normaliza: no mandes "", manda null; y luego elimina nulls
+      const payload: Record<string, any> = {
+        firstName: toNull(data.firstName),
+        lastName:  toNull(data.lastName),
+        email:     toNull(data.email)?.toLowerCase(),
+        phone:     toNull(data.phone),
+        address:   toNull(data.address),
+        city:      toNull(data.city),
+        postalCode:toNull(data.postalCode),
+        country:   toNull(data.country),
+        dni:       toNull(data.dni),
+        role:      data.role,
+        isActive:  !!data.isActive,
+        status:    data.status,
       };
-      const updated = await fetcher([`users/${id}`, "PUT", payload]);
-      setData(updated as UserDTO);
+      Object.keys(payload).forEach(
+        (k) => payload[k] == null && delete payload[k]
+      );
+
+      const updated = await fetcher([`users/${id}`, 'PUT', payload, token]);
+      setData(normalizeFromApi(updated));
       setEdit(false);
-      onSaved?.(updated as UserDTO);
+      setOk('Usuario actualizado');
     } catch (e: any) {
-      const msg = e?.message ?? "Error guardando usuario";
-      setError(msg);
-      onError?.(msg);
-    } finally {
-      setSaving(false);
-    }
+      const apiErrors = e?.errors;
+      const msg = apiErrors
+        ? Object.entries(apiErrors)
+            .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v[0] : v}`)
+            .join(' · ')
+        : (e?.message || 'Error guardando usuario');
+      setErr(msg);
+    } finally { setSaving(false); }
   };
 
-  if (loading) return <div style={{ padding: 16 }}>Cargando…</div>;
+  if (!token) {
+    return <Alert severity="error">No autenticado. Inicia sesión de nuevo.</Alert>;
+  }
+
+  if (loading) return <Box sx={{ p: 2 }}>Cargando…</Box>;
 
   return (
-    <Card sx={{ maxWidth: 1100, mx: "auto" }}>
-      <CardHeader title={data ? `Cliente #${data.id}` : "Cliente"} />
-      <CardContent>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+    <Card
+      sx={{
+        maxWidth: 1200,
+        mx: 'auto',
+        borderRadius: 3,
+        bgcolor: 'common.white',
+        color: 'text.primary',
+        boxShadow: 0,
+        border: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <CardHeader
+        title="Cliente"
+        sx={{
+          py: 2,
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+          '.MuiCardHeader-title': { fontSize: 22, fontWeight: 700, color: 'text.primary' },
+        }}
+      />
 
-        {/* Datos personales */}
+      <CardContent sx={{ pt: 2 }}>
+        {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
+        {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
+
+        <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 700, color: 'text.primary' }}>
+          Datos del cliente
+        </Typography>
+
+        {/* Datos del cliente */}
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <TextField label="Nombre" fullWidth value={data?.firstName ?? ""} onChange={setField("firstName")} disabled={!edit}/>
+            <TextField
+              label="Nombre"
+              fullWidth
+              value={data?.firstName ?? ''}
+              onChange={setField('firstName')}
+              InputProps={{ readOnly: !edit }}
+              sx={{
+                '& .MuiInputBase-root': { bgcolor: 'common.white' },
+                ...(edit && { '& .MuiOutlinedInput-root': { boxShadow: '0 0 0 1px rgba(239,68,68,.35) inset' } }),
+              }}
+            />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField label="Apellidos" fullWidth value={data?.lastName ?? ""} onChange={setField("lastName")} disabled={!edit}/>
+            <TextField
+              label="Apellidos"
+              fullWidth
+              value={data?.lastName ?? ''}
+              onChange={setField('lastName')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
           <Grid item xs={12} md={4}>
-            <TextField label="Email" fullWidth value={data?.email ?? ""} onChange={setField("email")} disabled={!edit}/>
+            <TextField
+              label="Email"
+              fullWidth
+              value={data?.email ?? ''}
+              onChange={setField('email')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
 
           <Grid item xs={12} md={3}>
-            <TextField label="DNI" fullWidth value={data?.dni ?? ""} onChange={setField("dni")} disabled={!edit}/>
+            <TextField
+              label="DNI/NIE"
+              fullWidth
+              value={data?.dni ?? ''}
+              onChange={setField('dni')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField label="Teléfono" fullWidth value={data?.phone ?? ""} onChange={setField("phone")} disabled={!edit}/>
+            <TextField
+              label="Teléfono"
+              fullWidth
+              value={data?.phone ?? ''}
+              onChange={setField('phone')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField label="Ciudad" fullWidth value={data?.city ?? ""} onChange={setField("city")} disabled={!edit}/>
+            <TextField
+              label="Ciudad"
+              fullWidth
+              value={data?.city ?? ''}
+              onChange={setField('city')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
           <Grid item xs={12} md={3}>
-            <TextField label="CP" fullWidth value={data?.postalCode ?? ""} onChange={setField("postalCode")} disabled={!edit}/>
+            <TextField
+              label="CP"
+              fullWidth
+              value={data?.postalCode ?? ''}
+              onChange={setField('postalCode')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
+
           <Grid item xs={12}>
-            <TextField label="Dirección" fullWidth value={data?.address ?? ""} onChange={setField("address")} disabled={!edit}/>
+            <TextField
+              label="Dirección"
+              fullWidth
+              value={data?.address ?? ''}
+              onChange={setField('address')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
 
           <Grid item xs={12} md={3}>
-            <TextField label="País" fullWidth value={data?.country ?? ""} onChange={setField("country")} disabled={!edit}/>
+            <TextField
+              label="País"
+              fullWidth
+              value={data?.country ?? ''}
+              onChange={setField('country')}
+              InputProps={{ readOnly: !edit }}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
+            />
           </Grid>
+
           <Grid item xs={12} md={3}>
             <TextField
               label="Rol"
               select
               fullWidth
-              value={data?.role ?? "client"}
-              onChange={setField("role")}
+              value={data?.role ?? 'client'}
+              onChange={setField('role')}
               disabled={!edit}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             >
-              {ROLE_OPTIONS.map((r) => <MenuItem key={r} value={r}>{r}</MenuItem>)}
+              {ROLE_OPTIONS.map((r) => (
+                <MenuItem key={r} value={r}>{r}</MenuItem>
+              ))}
             </TextField>
           </Grid>
+
           <Grid item xs={12} md={3}>
             <TextField
               label="Status"
               select
               fullWidth
-              value={data?.status ?? "active"}
-              onChange={setField("status")}
+              value={data?.status ?? 'active'}
+              onChange={setField('status')}
               disabled={!edit}
+              sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             >
-              {STATUS_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+              {STATUS_OPTIONS.map((s) => (
+                <MenuItem key={s} value={s}>{s}</MenuItem>
+              ))}
             </TextField>
           </Grid>
-          <Grid item xs={12} md={3}>
+
+          <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
             <FormControlLabel
-              control={<Switch checked={!!data?.isActive} onChange={setBool("isActive")} disabled={!edit} />}
+              control={<Switch checked={!!data?.isActive} onChange={setBool('isActive')} disabled={!edit} />}
               label="Activo"
             />
           </Grid>
@@ -210,70 +324,34 @@ export default function ClientView({ id, onSaved, onError }: Props) {
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Cursos */}
-        <h3>Cursos inscritos</h3>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Nombre</TableCell>
-              <TableCell align="right">Precio (€)</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(data?.courses ?? []).map((c) => (
-              <TableRow key={c.id}>
-                <TableCell>{c.id}</TableCell>
-                <TableCell>{c.name}</TableCell>
-                <TableCell align="right">{centsToEUR(c.price_cents)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {/* Listado de cursos */}
+        <ClientCoursesList userId={Number(id)} token={token} onChanged={() => { void load(); }} />
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Pagos */}
-        <h3>Pagos</h3>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Curso</TableCell>
-              <TableCell align="right">Importe (€)</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell>Método</TableCell>
-              <TableCell>Fecha pago</TableCell>
-              <TableCell>Ref</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(data?.payments ?? []).map((p) => (
-              <TableRow key={p.id}>
-                <TableCell>{p.id}</TableCell>
-                <TableCell>{p.course?.name ?? "-"}</TableCell>
-                <TableCell align="right">{centsToEUR(p.amount_cents)}</TableCell>
-                <TableCell>{p.status}</TableCell>
-                <TableCell>{p.method ?? "-"}</TableCell>
-                <TableCell>{p.paid_at ?? "-"}</TableCell>
-                <TableCell>{p.reference ?? "-"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        {/* Listado de pagos */}
+        <ClientPaymentsList userId={Number(id)} token={token} />
       </CardContent>
 
-      <CardActions>
+      <CardActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
         <Stack direction="row" spacing={1} ml="auto">
           {!edit ? (
             <>
-              <Button variant="outlined" onClick={() => void load()}>Refrescar</Button>
-              <Button variant="contained" onClick={() => setEdit(true)}>Editar</Button>
+              <Button startIcon={<RefreshIcon />} variant="outlined" onClick={() => { void load(); }}>
+                Refrescar
+              </Button>
+              <Button startIcon={<EditIcon />} variant="contained" onClick={() => setEdit(true)}>
+                Editar
+              </Button>
             </>
           ) : (
             <>
-              <Button variant="outlined" onClick={handleCancel} disabled={saving}>Cancelar</Button>
-              <Button variant="contained" onClick={handleSave} disabled={saving}>Guardar</Button>
+              <Button startIcon={<CloseIcon />} variant="outlined" onClick={handleCancel} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button startIcon={<SaveIcon />} variant="contained" onClick={handleSave} disabled={saving}>
+                Guardar
+              </Button>
             </>
           )}
         </Stack>

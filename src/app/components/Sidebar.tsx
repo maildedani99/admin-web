@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Drawer,
@@ -25,12 +26,11 @@ export const DRAWER_WIDTH = 260;
 
 type SidebarProps = {
   menu: MenuItem[];
-  permanent?: boolean; // fijo en md+
-  open?: boolean; // para móvil
-  onClose?: () => void; // para móvil
+  permanent?: boolean;
+  open?: boolean;
+  onClose?: () => void;
 };
 
-// --- helpers ---
 const isHrefActive = (pathname: string, href?: string) =>
   !!href && (pathname === href || pathname.startsWith(href + "/"));
 
@@ -38,7 +38,6 @@ const isAnyDescendantActive = (pathname: string, item: MenuItem): boolean =>
   isHrefActive(pathname, item.href) ||
   !!item.children?.some((c) => isAnyDescendantActive(pathname, c));
 
-// --- ItemNode ---
 function ItemNode({
   item,
   depth = 0,
@@ -52,7 +51,6 @@ function ItemNode({
   const hasChildren = !!item.children?.length;
   const active = isHrefActive(pathname ?? "", item.href);
   const defaultOpen = hasChildren && isAnyDescendantActive(pathname ?? "", item);
-
   const [open, setOpen] = React.useState<boolean>(defaultOpen);
 
   React.useEffect(() => {
@@ -66,12 +64,21 @@ function ItemNode({
     return (
       <>
         <ListItem disablePadding>
-          <ListItemButton onClick={() => setOpen((v) => !v)} sx={{ pl: paddingLeft }}>
+          <ListItemButton
+            onClick={() => setOpen((v) => !v)}
+            sx={{
+              pl: paddingLeft,
+              color: "grey.100",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
+            }}
+          >
             {item.icon && (
-              <ListItemIcon sx={{ minWidth: 36, color: "grey.300" }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 36, color: "grey.300" }}>
+                {item.icon}
+              </ListItemIcon>
             )}
             <ListItemText primary={item.name} />
-            {open ? <ExpandLess /> : <ExpandMore />}
+            {open ? <ExpandLess sx={{ color: "grey.400" }} /> : <ExpandMore sx={{ color: "grey.400" }} />}
           </ListItemButton>
         </ListItem>
         <Collapse in={open} timeout="auto" unmountOnExit>
@@ -95,10 +102,18 @@ function ItemNode({
       onClick={onLeafClick}
       selected={active}
       aria-current={active ? "page" : undefined}
-      sx={{ pl: paddingLeft, bgcolor: active ? "action.selected" : "transparent" }}
+      sx={{
+        pl: paddingLeft,
+        color: "grey.100",
+        "&.Mui-selected": { bgcolor: "rgba(255,255,255,0.10)" },
+        "&.Mui-selected:hover": { bgcolor: "rgba(255,255,255,0.12)" },
+        "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
+      }}
     >
       {item.icon && (
-        <ListItemIcon sx={{ minWidth: 36, color: "grey.300" }}>{item.icon}</ListItemIcon>
+        <ListItemIcon sx={{ minWidth: 36, color: "grey.300" }}>
+          {item.icon}
+        </ListItemIcon>
       )}
       <ListItemText primary={item.name} />
     </ListItemButton>
@@ -117,7 +132,6 @@ function ItemNode({
   );
 }
 
-// --- SidebarContent ---
 function SidebarContent({ menu, onLeafClick }: { menu: MenuItem[]; onLeafClick?: () => void }) {
   return (
     <Box
@@ -129,7 +143,28 @@ function SidebarContent({ menu, onLeafClick }: { menu: MenuItem[]; onLeafClick?:
         color: "grey.100",
       }}
     >
-      <Toolbar />
+    
+      {/* LOGO */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 2,
+        }}
+      >
+        <Link href="/" aria-label="Ir al dashboard" style={{ display: "inline-flex" }}>
+          <Image
+            src="/logo.png"
+            alt="Rebirth"
+            width={140}           // ⇦ ajusta a tu gusto (entre 120 y 160 va perfecto)
+            height={140}
+            style={{ height: "auto", width: "auto", maxWidth: 160 }}
+            priority
+          />
+        </Link>
+      </Box>
+
       <Divider sx={{ borderColor: "grey.800" }} />
 
       {/* Menu */}
@@ -146,13 +181,13 @@ function SidebarContent({ menu, onLeafClick }: { menu: MenuItem[]; onLeafClick?:
       <form action={logout}>
         <List disablePadding>
           <ListItem disablePadding>
-            <ListItemButton component="button" type="submit" sx={{ pl: 1.5 }}>
+            <ListItemButton component="button" type="submit" sx={{ pl: 1.5, color: "grey.100",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.06)" } }}>
               <ListItemIcon sx={{ minWidth: 36, color: "grey.300" }}>
                 <LogoutIcon />
               </ListItemIcon>
               <ListItemText primary="Cerrar sesión" />
             </ListItemButton>
-
           </ListItem>
         </List>
       </form>
@@ -160,7 +195,6 @@ function SidebarContent({ menu, onLeafClick }: { menu: MenuItem[]; onLeafClick?:
   );
 }
 
-// --- Sidebar ---
 export default function Sidebar({ menu, permanent = true, open = false, onClose }: SidebarProps) {
   const drawerPaperSx = {
     width: DRAWER_WIDTH,
