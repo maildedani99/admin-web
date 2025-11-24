@@ -1,10 +1,9 @@
 // app/admin/courses/page.tsx
+"use client";
 import CoursesTable from "@/app/components/CoursesTable";
-import { requireRole } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
+   // Asegúrate que es la primera línea
 
-export default async function Page() {
-  await requireRole("admin");
-  return <div style={{ padding: 24 }}><CoursesTable /></div>;
+export default function Page() {
+  return <CoursesTable />;
 }
