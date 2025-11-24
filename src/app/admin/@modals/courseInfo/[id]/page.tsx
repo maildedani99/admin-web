@@ -1,22 +1,21 @@
-import { notFound } from "next/navigation";
+// src/app/admin/@modals/courseInfo/[id]/page.tsx
+
 import CourseInfo from "@/app/components/CourseInfo";
-import Modal from "@/app/components/Modal";
 
 
 type CourseInfoPageProps = {
   params: {
-    id: string;
+    id: string; // viene del segmento [id] del router
   };
 };
 
 export default function CourseInfoModalPage({ params }: CourseInfoPageProps) {
-  const { id } = params;
-  
+  const idNum = Number(params.id);
 
+  // Opcional: protección si no es número
+  if (Number.isNaN(idNum)) {
+    return <div>ID de curso inválido</div>;
+  }
 
-  return (
-    <Modal>
-      <CourseInfo id={params.id} />
-    </Modal>
-  );
+  return <CourseInfo id={idNum} />;
 }
