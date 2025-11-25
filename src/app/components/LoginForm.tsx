@@ -11,6 +11,27 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import Image from "next/image";
+
+const API = process.env.NEXT_PUBLIC_API_ROUTE;
+
+function setAuthCookies(token: string, role?: string, remember?: boolean) {
+  const maxAge = remember ? "; Max-Age=2592000" : "";
+  const secure =
+    typeof location !== "undefined" && location.protocol === "https:"
+      ? "; Secure"
+      : "";
+
+  document.cookie = `rb.token=${encodeURIComponent(
+    token
+  )}; Path=/; SameSite=Lax${maxAge}${secure}`;
+
+  if (role) {
+    document.cookie = `rb.role=${encodeURIComponent(
+      role
+    )}; Path=/; SameSite=Lax${maxAge}${secure}`;
+  }
+}
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -18,77 +39,78 @@ export default function LoginForm() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
-  const router = useRouter();
-  const params = useSearchParams();
 
-  const API = process.env.NEXT_PUBLIC_API_ROUTE;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/admin/users/clients";
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+
     setErr("");
     setLoading(true);
 
     try {
       if (!API) throw new Error("Falta NEXT_PUBLIC_API_ROUTE");
 
-      // 1) LOGIN → token
-      const r = await fetch(`${API}/auth/login`, {
+      const body = {
+        email: email.trim(),
+        password,
+      };
+
+      // 1) LOGIN
+      const loginRes = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify(body),
         cache: "no-store",
       });
 
-      const loginBody = await r.json().catch(() => ({}));
-      if (!r.ok || loginBody?.success === false) {
-        throw new Error(loginBody?.message || "Credenciales inválidas");
+      const loginJson = await loginRes.json().catch(() => ({} as any));
+
+      if (!loginRes.ok || loginJson?.success === false) {
+        throw new Error(loginJson?.message || "Credenciales inválidas");
       }
 
       const token: string | undefined =
-        loginBody?.data?.token ?? loginBody?.token;
-      if (!token) throw new Error("Login sin token");
+        loginJson?.data?.token ?? loginJson?.token;
 
-      // 2) ME → user
-      const meR = await fetch(`${API}/auth/me`, {
+      if (!token) {
+        throw new Error("Login sin token");
+      }
+
+      // 2) ME
+      const meRes = await fetch(`${API}/auth/me`, {
+        method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
         },
         cache: "no-store",
       });
-      const meBody = await meR.json().catch(() => ({}));
-      if (!meR.ok || meBody?.success === false) {
-        throw new Error(meBody?.message || "No se pudo obtener el perfil");
-      }
-      const user = meBody?.data ?? meBody;
 
-      // 3) Persistencia mínima
+      const meJson = await meRes.json().catch(() => ({} as any));
+
+      if (!meRes.ok || meJson?.success === false) {
+        throw new Error(meJson?.message || "No se pudo obtener el perfil");
+      }
+
+      const user = meJson?.data ?? meJson;
+
+      // 3) storage
       const storage = remember ? localStorage : sessionStorage;
       storage.setItem("token", token);
       storage.setItem("user", JSON.stringify(user));
 
-      // --- cookies que middleware usará ---
-      document.cookie = `rb.token=${encodeURIComponent(
-        token
-      )}; Path=/; SameSite=Lax${
-        remember ? "; Max-Age=2592000" : ""
-      }${location.protocol === "https:" ? "; Secure" : ""}`;
+      // 4) cookies
+      setAuthCookies(token, user?.role, remember);
 
-      if (user?.role) {
-        document.cookie = `rb.role=${encodeURIComponent(
-          user.role
-        )}; Path=/; SameSite=Lax${
-          remember ? "; Max-Age=2592000" : ""
-        }${location.protocol === "https:" ? "; Secure" : ""}`;
-      }
-
-      // 4) Redirección
-      const to = params.get("redirect") || "/admin/users/clients";
-      router.replace(to);
+      // 5) redirect
+      router.replace(redirectTo);
     } catch (e: any) {
       setErr(e?.message || "Error al iniciar sesión");
     } finally {
@@ -102,7 +124,7 @@ export default function LoginForm() {
         minHeight: "100vh",
         display: "grid",
         placeItems: "center",
-        bgcolor: "#121212",
+        bgcolor: "#f3f3f3", // fondo gris claro como en Campus
         p: 3,
       }}
     >
@@ -110,93 +132,121 @@ export default function LoginForm() {
         component="form"
         onSubmit={onSubmit}
         sx={{
-          width: 420,
+          width: 520,
           maxWidth: "100%",
           p: 4,
-          bgcolor: "#1e1e1e",
-          borderRadius: 3,
+          bgcolor: "#ffffff",
+          borderRadius: 4,
+          boxShadow: "0 4px 18px rgba(0,0,0,0.08)",
+          border: "1px solid #e0e0e0",
         }}
       >
-        <Typography
-          variant="h6"
-          sx={{ mb: 2, fontWeight: 700, color: "#fff" }}
-        >
-          Iniciar sesión (Admin)
-        </Typography>
+        <Grid container spacing={2} alignItems="flex-start">
+          {/* Columna izquierda: título + formulario */}
+          <Grid size={{ xs: 12, md: 7 }}>
+            <Typography
+              variant="h6"
+              sx={{ mb: 3, fontWeight: 700, color: "#222" }}
+            >
+              Iniciar sesión
+            </Typography>
 
-        {err && (
-          <Typography sx={{ color: "#ff7070", mb: 2, fontWeight: 600 }}>
-            {err}
-          </Typography>
-        )}
+            {err && (
+              <Typography
+                sx={{
+                  color: "#d0021b",
+                  mb: 2,
+                  fontWeight: 500,
+                  fontSize: 14,
+                }}
+              >
+                {err}
+              </Typography>
+            )}
 
-        <Grid container spacing={2}>
-  <Grid size={{ xs: 12 }}>
-    <TextField
-      fullWidth
-      label="Correo"
-      type="email"
-      required
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      sx={{
-        "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
-        "& .MuiInputLabel-root": { color: "#ccc" },
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: "#3a3a3a",
-        },
-      }}
-    />
-  </Grid>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  fullWidth
+                  label="Correo electrónico"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Grid>
 
-  <Grid size={{ xs: 12 }}>
-    <TextField
-      fullWidth
-      label="Contraseña"
-      type="password"
-      required
-      value={password}
-      onChange={(e) => setPassword(e.target.value)}
-      sx={{
-        "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
-        "& .MuiInputLabel-root": { color: "#ccc" },
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: "#3a3a3a",
-        },
-      }}
-    />
-  </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  fullWidth
+                  label="Contraseña"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Grid>
 
-  <Grid size={{ xs: 12 }}>
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={remember}
-          onChange={(e) => setRemember(e.target.checked)}
-          sx={{ color: "#fff" }}
-        />
-      }
-      label={
-        <Typography variant="body2" sx={{ color: "#ccc" }}>
-          Recordarme
-        </Typography>
-      }
-    />
-  </Grid>
+              {/* <Grid size={{ xs: 12 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={remember}
+                      onChange={(e) => setRemember(e.target.checked)}
+                      size="small"
+                    />
+                  }
+                  label={
+                    <Typography variant="body2" sx={{ color: "#555" }}>
+                      Recordarme
+                    </Typography>
+                  }
+                />
+              </Grid> */}
 
-  <Grid size={{ xs: 12 }}>
-    <Button
-      type="submit"
-      fullWidth
-      variant="contained"
-      disabled={loading}
-      sx={{ bgcolor: "#ef4444", fontWeight: "bold" }}
-    >
-      {loading ? "Entrando…" : "Entrar"}
-    </Button>
-  </Grid>
-</Grid>
+              <Grid size={{ xs: 12 }}>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  sx={{
+                    bgcolor: "#d0021b",
+                    fontWeight: "bold",
+                    mt: 1,
+                    py: 1.2,
+                    "&:hover": {
+                      bgcolor: "#b10016",
+                    },
+                  }}
+                >
+                  {loading ? "Entrando…" : "ENTRAR"}
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
 
+          {/* Columna derecha: logo Rebirth */}
+          <Grid
+            size={{ xs: 12, md: 5 }}
+            sx={{
+              display: "flex",
+              justifyContent: { xs: "center", md: "flex-end" },
+              alignItems: "flex-start",
+              mt: { xs: 3, md: 0 },
+            }}
+          >
+            <Box sx={{ textAlign: "center" }}>
+              <Image
+                src="/logo-inverse.png" // ajusta a la ruta real de tu logo
+                alt="Rebirth"
+                width={96}
+                height={96}
+              />
+         
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );
