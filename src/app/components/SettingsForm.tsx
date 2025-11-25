@@ -124,43 +124,46 @@ export default function SettingsForm() {
             Precios
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                label="Precio curso"
-                type="number"
-                inputProps={{ step: '0.01', min: 0 }}
-                fullWidth
-                value={form.price_course ?? ''}
-                onChange={onChange('price_course')}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                label="Precio sesión"
-                type="number"
-                inputProps={{ step: '0.01', min: 0 }}
-                fullWidth
-                value={form.price_session ?? ''}
-                onChange={onChange('price_session')}
-                disabled={loading}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                label="Precio reserva"
-                type="number"
-                inputProps={{ step: '0.01', min: 0 }}
-                fullWidth
-                value={form.price_booking ?? ''}
-                onChange={onChange('price_booking')}
-                disabled={loading}
-              />
-            </Grid>
-          </Grid>
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      label="Precio curso"
+      type="number"
+      inputProps={{ step: '0.01', min: 0 }}
+      fullWidth
+      value={form.price_course ?? ''}
+      onChange={onChange('price_course')}
+      disabled={loading}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      label="Precio sesión"
+      type="number"
+      inputProps={{ step: '0.01', min: 0 }}
+      fullWidth
+      value={form.price_session ?? ''}
+      onChange={onChange('price_session')}
+      disabled={loading}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      label="Precio reserva"
+      type="number"
+      inputProps={{ step: '0.01', min: 0 }}
+      fullWidth
+      value={form.price_booking ?? ''}
+      onChange={onChange('price_booking')}
+      disabled={loading}
+    />
+  </Grid>
+</Grid>
+
         </Box>
 
         {/* Stripe default region */}

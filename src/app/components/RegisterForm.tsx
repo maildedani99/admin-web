@@ -170,139 +170,227 @@ export default function AdminCreateUserForm() {
         {successMsg && <Alert severity="success" sx={{ mb: 2 }}>{successMsg}</Alert>}
 
         <form onSubmit={handleSubmit} noValidate style={{ width: '100%' }}>
-          <Grid container spacing={2}>
-            {/* Fila 1: 3 columnas */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="firstName" label="Nombre" fullWidth required
-                value={form.firstName} onChange={handleChange}
-                error={!!formErrors.firstName} helperText={formErrors.firstName}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="lastName" label="Apellidos" fullWidth required
-                value={form.lastName} onChange={handleChange}
-                error={!!formErrors.lastName} helperText={formErrors.lastName}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="email" label="Correo electrónico" type="email" fullWidth required
-                value={form.email} onChange={handleChange}
-                error={!!formErrors.email} helperText={formErrors.email}
-              />
-            </Grid>
+         <Grid container spacing={2}>
+  {/* Fila 1: 3 columnas */}
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="firstName"
+      label="Nombre"
+      fullWidth
+      required
+      value={form.firstName}
+      onChange={handleChange}
+      error={!!formErrors.firstName}
+      helperText={formErrors.firstName}
+    />
+  </Grid>
 
-            {/* Fila 2: 4 columnas */}
-            <Grid item xs={12} md={3}>
-              <TextField
-                size="small"
-                name="role" label="Rol" select fullWidth required
-                value={form.role} onChange={handleChange}
-                error={!!(formErrors as any).role} helperText={(formErrors as any).role}
-              >
-                <MenuItem value="admin">admin</MenuItem>
-                <MenuItem value="teacher">teacher</MenuItem>
-                <MenuItem value="client">client</MenuItem>
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                size="small"
-                name="password" label="Contraseña" type="password" fullWidth required
-                value={form.password} onChange={handleChange}
-                error={!!formErrors.password} helperText={formErrors.password}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                size="small"
-                name="repeatPassword" label="Repetir contraseña" type="password" fullWidth required
-                value={form.repeatPassword} onChange={handleChange}
-                error={!!formErrors.repeatPassword} helperText={formErrors.repeatPassword}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                size="small"
-                name="birthDate" label="Fecha de nacimiento" type="date" fullWidth required
-                value={form.birthDate} onChange={handleChange}
-                error={!!formErrors.birthDate} helperText={formErrors.birthDate}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="lastName"
+      label="Apellidos"
+      fullWidth
+      required
+      value={form.lastName}
+      onChange={handleChange}
+      error={!!formErrors.lastName}
+      helperText={formErrors.lastName}
+    />
+  </Grid>
 
-            {/* Fila 3 */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="phone" label="Teléfono" fullWidth required
-                value={form.phone} onChange={handleChange}
-                error={!!formErrors.phone} helperText={formErrors.phone}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="dni" label="DNI/NIE" fullWidth required
-                value={form.dni} onChange={handleChange}
-                error={!!formErrors.dni} helperText={formErrors.dni}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="address" label="Dirección" fullWidth required
-                value={form.address} onChange={handleChange}
-                error={!!formErrors.address} helperText={formErrors.address}
-              />
-            </Grid>
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="email"
+      label="Correo electrónico"
+      type="email"
+      fullWidth
+      required
+      value={form.email}
+      onChange={handleChange}
+      error={!!formErrors.email}
+      helperText={formErrors.email}
+    />
+  </Grid>
 
-            {/* Fila 4 */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="province" label="Provincia" fullWidth required
-                value={form.province} onChange={handleChange}
-                error={!!formErrors.province} helperText={formErrors.province}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="postalCode" label="Código Postal" fullWidth required
-                value={form.postalCode} onChange={handleChange}
-                error={!!formErrors.postalCode} helperText={formErrors.postalCode}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="city" label="Ciudad" fullWidth required
-                value={form.city} onChange={handleChange}
-                error={!!formErrors.city} helperText={formErrors.city}
-              />
-            </Grid>
+  {/* Fila 2: 4 columnas */}
+  <Grid size={{ xs: 12, md: 3 }}>
+    <TextField
+      size="small"
+      name="role"
+      label="Rol"
+      select
+      fullWidth
+      required
+      value={form.role}
+      onChange={handleChange}
+      error={!!(formErrors as any).role}
+      helperText={(formErrors as any).role}
+    >
+      <MenuItem value="admin">admin</MenuItem>
+      <MenuItem value="teacher">teacher</MenuItem>
+      <MenuItem value="client">client</MenuItem>
+    </TextField>
+  </Grid>
 
-            {/* Fila 5: País */}
-            <Grid item xs={12} md={4}>
-              <TextField
-                size="small"
-                name="country" label="País" select fullWidth
-                value={form.country} onChange={handleChange}
-                error={!!formErrors.country} helperText={formErrors.country}
-              >
-                {COUNTRIES.map((c) => (
-                  <MenuItem key={c} value={c}>{c}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12} md={8} />
-          </Grid>
+  <Grid size={{ xs: 12, md: 3 }}>
+    <TextField
+      size="small"
+      name="password"
+      label="Contraseña"
+      type="password"
+      fullWidth
+      required
+      value={form.password}
+      onChange={handleChange}
+      error={!!formErrors.password}
+      helperText={formErrors.password}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 3 }}>
+    <TextField
+      size="small"
+      name="repeatPassword"
+      label="Repetir contraseña"
+      type="password"
+      fullWidth
+      required
+      value={form.repeatPassword}
+      onChange={handleChange}
+      error={!!formErrors.repeatPassword}
+      helperText={formErrors.repeatPassword}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 3 }}>
+    <TextField
+      size="small"
+      name="birthDate"
+      label="Fecha de nacimiento"
+      type="date"
+      fullWidth
+      required
+      value={form.birthDate}
+      onChange={handleChange}
+      error={!!formErrors.birthDate}
+      helperText={formErrors.birthDate}
+      InputLabelProps={{ shrink: true }}
+    />
+  </Grid>
+
+  {/* Fila 3 */}
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="phone"
+      label="Teléfono"
+      fullWidth
+      required
+      value={form.phone}
+      onChange={handleChange}
+      error={!!formErrors.phone}
+      helperText={formErrors.phone}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="dni"
+      label="DNI/NIE"
+      fullWidth
+      required
+      value={form.dni}
+      onChange={handleChange}
+      error={!!formErrors.dni}
+      helperText={formErrors.dni}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="address"
+      label="Dirección"
+      fullWidth
+      required
+      value={form.address}
+      onChange={handleChange}
+      error={!!formErrors.address}
+      helperText={formErrors.address}
+    />
+  </Grid>
+
+  {/* Fila 4 */}
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="province"
+      label="Provincia"
+      fullWidth
+      required
+      value={form.province}
+      onChange={handleChange}
+      error={!!formErrors.province}
+      helperText={formErrors.province}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="postalCode"
+      label="Código Postal"
+      fullWidth
+      required
+      value={form.postalCode}
+      onChange={handleChange}
+      error={!!formErrors.postalCode}
+      helperText={formErrors.postalCode}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="city"
+      label="Ciudad"
+      fullWidth
+      required
+      value={form.city}
+      onChange={handleChange}
+      error={!!formErrors.city}
+      helperText={formErrors.city}
+    />
+  </Grid>
+
+  {/* Fila 5: País */}
+  <Grid size={{ xs: 12, md: 4 }}>
+    <TextField
+      size="small"
+      name="country"
+      label="País"
+      select
+      fullWidth
+      value={form.country}
+      onChange={handleChange}
+      error={!!formErrors.country}
+      helperText={formErrors.country}
+    >
+      {COUNTRIES.map((c) => (
+        <MenuItem key={c} value={c}>
+          {c}
+        </MenuItem>
+      ))}
+    </TextField>
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 8 }} />
+</Grid>
+
 
           {/* Botón */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>

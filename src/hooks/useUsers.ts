@@ -1,7 +1,7 @@
 "use client";
 import useSWR from "swr";
 import { apiFetcher, type SWRKey } from "@/lib/swr";
-import { getToken } from "@/lib/auth";
+import { getClientToken } from "@/lib/auth-client";
 
 export type Role = "admin" | "teacher" | "client";
 export type UserRow = {
@@ -18,7 +18,7 @@ export default function useUsers(
   tokenLike: string | null,
   { type, search = "", page = 1, per_page = 50 }: { type: "clients" | "members"; search?: string; page?: number; per_page?: number }
 ) {
-  const token = tokenLike ?? getToken();
+  const token = tokenLike ?? getClientToken();
   const path = type === "clients" ? "users/clients" : "users/members";
 
   const key: SWRKey | null = token ? ["GET", path, { search, page, per_page }, token] : null;

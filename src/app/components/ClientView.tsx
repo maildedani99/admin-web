@@ -1,4 +1,3 @@
-// src/components/ClientView.tsx
 'use client';
 
 import { useEffect, useState, useCallback, ChangeEvent } from 'react';
@@ -7,6 +6,7 @@ import {
   Grid, TextField, Button, Stack, Divider, Switch, FormControlLabel, Alert,
   MenuItem, Typography
 } from '@mui/material';
+
 import RefreshIcon from '@mui/icons-material/Refresh';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -112,7 +112,6 @@ export default function ClientView({ id }: Props) {
     setErr(null);
     setOk(null);
     try {
-      // normaliza: no mandes "", manda null; y luego elimina nulls
       const payload: Record<string, any> = {
         firstName: toNull(data.firstName),
         lastName:  toNull(data.lastName),
@@ -127,6 +126,7 @@ export default function ClientView({ id }: Props) {
         isActive:  !!data.isActive,
         status:    data.status,
       };
+
       Object.keys(payload).forEach(
         (k) => payload[k] == null && delete payload[k]
       );
@@ -171,7 +171,11 @@ export default function ClientView({ id }: Props) {
           py: 2,
           borderBottom: '1px solid',
           borderColor: 'divider',
-          '.MuiCardHeader-title': { fontSize: 22, fontWeight: 700, color: 'text.primary' },
+          '.MuiCardHeader-title': {
+            fontSize: 22,
+            fontWeight: 700,
+            color: 'text.primary',
+          },
         }}
       />
 
@@ -179,13 +183,17 @@ export default function ClientView({ id }: Props) {
         {err && <Alert severity="error" sx={{ mb: 2 }}>{err}</Alert>}
         {ok && <Alert severity="success" sx={{ mb: 2 }}>{ok}</Alert>}
 
-        <Typography variant="subtitle1" sx={{ mb: 1.5, fontWeight: 700, color: 'text.primary' }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ mb: 1.5, fontWeight: 700, color: 'text.primary' }}
+        >
           Datos del cliente
         </Typography>
 
-        {/* Datos del cliente */}
+        {/* ==== GRID CORREGIDO ==== */}
+                {/* Datos del cliente */}
         <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label="Nombre"
               fullWidth
@@ -194,11 +202,16 @@ export default function ClientView({ id }: Props) {
               InputProps={{ readOnly: !edit }}
               sx={{
                 '& .MuiInputBase-root': { bgcolor: 'common.white' },
-                ...(edit && { '& .MuiOutlinedInput-root': { boxShadow: '0 0 0 1px rgba(239,68,68,.35) inset' } }),
+                ...(edit && {
+                  '& .MuiOutlinedInput-root': {
+                    boxShadow: '0 0 0 1px rgba(239,68,68,.35) inset',
+                  },
+                }),
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label="Apellidos"
               fullWidth
@@ -208,7 +221,8 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               label="Email"
               fullWidth
@@ -219,7 +233,7 @@ export default function ClientView({ id }: Props) {
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="DNI/NIE"
               fullWidth
@@ -229,7 +243,8 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="Teléfono"
               fullWidth
@@ -239,7 +254,8 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="Ciudad"
               fullWidth
@@ -249,7 +265,8 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             />
           </Grid>
-          <Grid item xs={12} md={3}>
+
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="CP"
               fullWidth
@@ -260,7 +277,7 @@ export default function ClientView({ id }: Props) {
             />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               label="Dirección"
               fullWidth
@@ -271,7 +288,7 @@ export default function ClientView({ id }: Props) {
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="País"
               fullWidth
@@ -282,7 +299,7 @@ export default function ClientView({ id }: Props) {
             />
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="Rol"
               select
@@ -293,12 +310,14 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             >
               {ROLE_OPTIONS.map((r) => (
-                <MenuItem key={r} value={r}>{r}</MenuItem>
+                <MenuItem key={r} value={r}>
+                  {r}
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <TextField
               label="Status"
               select
@@ -309,47 +328,89 @@ export default function ClientView({ id }: Props) {
               sx={{ '& .MuiInputBase-root': { bgcolor: 'common.white' } }}
             >
               {STATUS_OPTIONS.map((s) => (
-                <MenuItem key={s} value={s}>{s}</MenuItem>
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
               ))}
             </TextField>
           </Grid>
 
-          <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+          <Grid
+            size={{ xs: 12, md: 3 }}
+            sx={{ display: 'flex', alignItems: 'center' }}
+          >
             <FormControlLabel
-              control={<Switch checked={!!data?.isActive} onChange={setBool('isActive')} disabled={!edit} />}
+              control={
+                <Switch
+                  checked={!!data?.isActive}
+                  onChange={setBool('isActive')}
+                  disabled={!edit}
+                />
+              }
               label="Activo"
             />
           </Grid>
         </Grid>
 
-        <Divider sx={{ my: 3 }} />
-
-        {/* Listado de cursos */}
-        <ClientCoursesList userId={Number(id)} token={token} onChanged={() => { void load(); }} />
 
         <Divider sx={{ my: 3 }} />
 
-        {/* Listado de pagos */}
+        <ClientCoursesList
+          userId={Number(id)}
+          token={token}
+          onChanged={() => {
+            void load();
+          }}
+        />
+
+        <Divider sx={{ my: 3 }} />
+
         <ClientPaymentsList userId={Number(id)} token={token} />
       </CardContent>
 
-      <CardActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+      <CardActions
+        sx={{
+          p: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
         <Stack direction="row" spacing={1} ml="auto">
           {!edit ? (
             <>
-              <Button startIcon={<RefreshIcon />} variant="outlined" onClick={() => { void load(); }}>
+              <Button
+                startIcon={<RefreshIcon />}
+                variant="outlined"
+                onClick={() => {
+                  void load();
+                }}
+              >
                 Refrescar
               </Button>
-              <Button startIcon={<EditIcon />} variant="contained" onClick={() => setEdit(true)}>
+              <Button
+                startIcon={<EditIcon />}
+                variant="contained"
+                onClick={() => setEdit(true)}
+              >
                 Editar
               </Button>
             </>
           ) : (
             <>
-              <Button startIcon={<CloseIcon />} variant="outlined" onClick={handleCancel} disabled={saving}>
+              <Button
+                startIcon={<CloseIcon />}
+                variant="outlined"
+                onClick={handleCancel}
+                disabled={saving}
+              >
                 Cancelar
               </Button>
-              <Button startIcon={<SaveIcon />} variant="contained" onClick={handleSave} disabled={saving}>
+              <Button
+                startIcon={<SaveIcon />}
+                variant="contained"
+                onClick={handleSave}
+                disabled={saving}
+              >
                 Guardar
               </Button>
             </>

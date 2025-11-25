@@ -349,48 +349,52 @@ export default function CoursesTable() {
       <Box component="form" onSubmit={onCreate}>
         <DialogContent dividers>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Nombre*"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                fullWidth
-                required
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Precio (opcional)"
-                type="number"
-                inputProps={{ step: '0.01', min: 0 }}
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                fullWidth
-                helperText="Si lo dejas vacío, se usará el precio por defecto de Config."
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Descripción"
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                fullWidth
-                multiline
-                minRows={3}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Contenido (JSON opcional)"
-                value={form.content}
-                onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
-                fullWidth
-                multiline
-                minRows={6}
-                placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
-              />
-            </Grid>
-          </Grid>
+  <Grid size={{ xs: 12, md: 6 }}>
+    <TextField
+      label="Nombre*"
+      value={form.name}
+      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+      fullWidth
+      required
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 6 }}>
+    <TextField
+      label="Precio (opcional)"
+      type="number"
+      inputProps={{ step: '0.01', min: 0 }}
+      value={form.price}
+      onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+      fullWidth
+      helperText="Si lo dejas vacío, se usará el precio por defecto de Config."
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      label="Descripción"
+      value={form.description}
+      onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+      fullWidth
+      multiline
+      minRows={3}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      label="Contenido (JSON opcional)"
+      value={form.content}
+      onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+      fullWidth
+      multiline
+      minRows={6}
+      placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
+    />
+  </Grid>
+</Grid>
+
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)} disabled={creating}>Cancelar</Button>

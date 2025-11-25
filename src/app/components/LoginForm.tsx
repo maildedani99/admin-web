@@ -131,71 +131,72 @@ export default function LoginForm() {
         )}
 
         <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Correo"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              sx={{
-                "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
-                "& .MuiInputLabel-root": { color: "#ccc" },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#3a3a3a",
-                },
-              }}
-            />
-          </Grid>
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      fullWidth
+      label="Correo"
+      type="email"
+      required
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      sx={{
+        "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
+        "& .MuiInputLabel-root": { color: "#ccc" },
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#3a3a3a",
+        },
+      }}
+    />
+  </Grid>
 
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Contraseña"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              sx={{
-                "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
-                "& .MuiInputLabel-root": { color: "#ccc" },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#3a3a3a",
-                },
-              }}
-            />
-          </Grid>
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      fullWidth
+      label="Contraseña"
+      type="password"
+      required
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      sx={{
+        "& .MuiInputBase-root": { color: "#fff", bgcolor: "#2e2e2e" },
+        "& .MuiInputLabel-root": { color: "#ccc" },
+        "& .MuiOutlinedInput-notchedOutline": {
+          borderColor: "#3a3a3a",
+        },
+      }}
+    />
+  </Grid>
 
-          <Grid item xs={12}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                  sx={{ color: "#fff" }}
-                />
-              }
-              label={
-                <Typography variant="body2" sx={{ color: "#ccc" }}>
-                  Recordarme
-                </Typography>
-              }
-            />
-          </Grid>
+  <Grid size={{ xs: 12 }}>
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={remember}
+          onChange={(e) => setRemember(e.target.checked)}
+          sx={{ color: "#fff" }}
+        />
+      }
+      label={
+        <Typography variant="body2" sx={{ color: "#ccc" }}>
+          Recordarme
+        </Typography>
+      }
+    />
+  </Grid>
 
-          <Grid item xs={12}>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              sx={{ bgcolor: "#ef4444", fontWeight: "bold" }}
-            >
-              {loading ? "Entrando…" : "Entrar"}
-            </Button>
-          </Grid>
-        </Grid>
+  <Grid size={{ xs: 12 }}>
+    <Button
+      type="submit"
+      fullWidth
+      variant="contained"
+      disabled={loading}
+      sx={{ bgcolor: "#ef4444", fontWeight: "bold" }}
+    >
+      {loading ? "Entrando…" : "Entrar"}
+    </Button>
+  </Grid>
+</Grid>
+
       </Box>
     </Box>
   );

@@ -174,65 +174,69 @@ export default function CourseInfo({ id, onSaved, onClose, readOnly = false }: P
         {ok && <Alert severity="success">{ok}</Alert>}
 
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Nombre*"
-              value={form.name}
-              onChange={onChange("name")}
-              fullWidth
-              required
-              disabled={loading || readOnly}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              label="Precio"
-              type="number"
-              inputProps={{ step: "0.01", min: 0 }}
-              value={form.price}
-              onChange={onChange("price")}
-              fullWidth
-              helperText="Déjalo vacío para mantener el actual."
-              disabled={loading || readOnly}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Descripción"
-              value={form.description}
-              onChange={onChange("description")}
-              fullWidth
-              multiline
-              minRows={3}
-              disabled={loading || readOnly}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Contenido (JSON)"
-              value={form.content}
-              onChange={onChange("content")}
-              fullWidth
-              multiline
-              minRows={8}
-              placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
-              disabled={loading || readOnly}
-            />
-            {!readOnly && (
-              <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                <Button onClick={formatJson} size="small" variant="outlined" disabled={loading}>
-                  Formatear JSON
-                </Button>
-                <Button onClick={clearJson} size="small" variant="text" disabled={loading}>
-                  Vaciar contenido
-                </Button>
-                <Button onClick={reload} size="small" variant="text" disabled={loading}>
-                  Recargar
-                </Button>
-              </Stack>
-            )}
-          </Grid>
-        </Grid>
+  <Grid size={{ xs: 12, md: 6 }}>
+    <TextField
+      label="Nombre*"
+      value={form.name}
+      onChange={onChange("name")}
+      fullWidth
+      required
+      disabled={loading || readOnly}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12, md: 6 }}>
+    <TextField
+      label="Precio"
+      type="number"
+      inputProps={{ step: "0.01", min: 0 }}
+      value={form.price}
+      onChange={onChange("price")}
+      fullWidth
+      helperText="Déjalo vacío para mantener el actual."
+      disabled={loading || readOnly}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      label="Descripción"
+      value={form.description}
+      onChange={onChange("description")}
+      fullWidth
+      multiline
+      minRows={3}
+      disabled={loading || readOnly}
+    />
+  </Grid>
+
+  <Grid size={{ xs: 12 }}>
+    <TextField
+      label="Contenido (JSON)"
+      value={form.content}
+      onChange={onChange("content")}
+      fullWidth
+      multiline
+      minRows={8}
+      placeholder='{"modules":[{"title":"Intro","lessons":["A","B"]}]}'
+      disabled={loading || readOnly}
+    />
+    {!readOnly && (
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+        <Button onClick={formatJson} size="small" variant="outlined" disabled={loading}>
+          Formatear JSON
+        </Button>
+        <Button onClick={clearJson} size="small" variant="text" disabled={loading}>
+          Vaciar contenido
+        </Button>
+        <Button onClick={reload} size="small" variant="text" disabled={loading}>
+          Recargar
+        </Button>
+      </Stack>
+    )}
+  </Grid>
+</Grid>
+
 
         {!readOnly && (
           <Stack direction="row" justifyContent="flex-end" spacing={1}>
